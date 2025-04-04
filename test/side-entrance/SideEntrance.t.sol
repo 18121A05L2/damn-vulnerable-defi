@@ -46,6 +46,7 @@ contract SideEntranceChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_sideEntrance() public checkSolvedByPlayer {
+        //? solved on my own
         AttackSideEntrance attack = new AttackSideEntrance(pool);
         attack.attack(recovery);
     }
