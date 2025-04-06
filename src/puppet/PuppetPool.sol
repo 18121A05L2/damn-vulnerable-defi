@@ -6,6 +6,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {DamnValuableToken} from "../DamnValuableToken.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract PuppetPool is ReentrancyGuard {
     using Address for address payable;
 
@@ -29,6 +31,9 @@ contract PuppetPool is ReentrancyGuard {
     // Allows borrowing tokens by first depositing two times their value in ETH
     function borrow(uint256 amount, address recipient) external payable nonReentrant {
         uint256 depositRequired = calculateDepositRequired(amount);
+        console.log("amount    : ", amount);
+        console.log("msg.value       : ", msg.value);
+        console.log("depositRequired : ", depositRequired);
 
         if (msg.value < depositRequired) {
             revert NotEnoughCollateral();
