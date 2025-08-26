@@ -87,6 +87,11 @@ contract TheRewarderDistributor {
         for (uint256 i = 0; i < inputClaims.length; i++) {
             inputClaim = inputClaims[i];
 
+            // For example, if a claim has a batch number of 300:
+            // wordPosition = 300 / 256 = 1
+            // bitPosition = 300 % 256 = 44
+            // This means the 45th bit in the second word represents this claim
+
             uint256 wordPosition = inputClaim.batchNumber / 256;
             uint256 bitPosition = inputClaim.batchNumber % 256;
 

