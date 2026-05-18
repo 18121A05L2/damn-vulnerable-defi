@@ -123,7 +123,13 @@ contract FreeRiderChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_freeRider() public checkSolvedByPlayer {
+        // i need to transfer all nfts to recoveryManager
+
         
+
+        for (uint256 tokenId = 0; tokenId < AMOUNT_OF_NFTS; tokenId++) {
+            console.log(nft.ownerOf(tokenId));
+        }
     }
 
     /**
@@ -133,6 +139,7 @@ contract FreeRiderChallenge is Test {
         // The recovery owner extracts all NFTs from its associated contract
         for (uint256 tokenId = 0; tokenId < AMOUNT_OF_NFTS; tokenId++) {
             vm.prank(recoveryManagerOwner);
+            // recoverymanager has given all nfts access to the recoveryManagerOwner
             nft.transferFrom(address(recoveryManager), recoveryManagerOwner, tokenId);
             assertEq(nft.ownerOf(tokenId), recoveryManagerOwner);
         }
